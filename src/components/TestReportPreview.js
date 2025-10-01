@@ -3,6 +3,7 @@ import { Container, Row, Col, Card, Button, Table, Form, Badge, Spinner, Alert }
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getApiUrl } from '../config/api';
+import { openReport, checkReportDataCompleteness } from '../utils/reportHelper';
 import {
   faArrowLeft,
   faFilePdf,
@@ -259,6 +260,14 @@ const TestReportPreview = () => {
 
   // Function to view OBSERVATION SHEET (Page 1 only)
   const handleViewObservationSheet = () => {
+    // Validate observations data exists
+    if (!testData.observationsData || Object.keys(testData.observationsData).length === 0) {
+      alert('⚠️ Observation Sheet Cannot Be Generated\n\nTest observations are missing. Please complete the observations first before generating the observation sheet.');
+      return;
+    }
+    
+    console.log('📄 Generating Observation Sheet');
+    
     // Navigate to observation sheet page
     const params = new URLSearchParams();
     const cubeTest = testData.cubeTests ? testData.cubeTests[0] : testData;
@@ -295,15 +304,25 @@ const TestReportPreview = () => {
     params.append('checked_by_name', testData.checkedBy || '');
     params.append('verified_by_name', testData.verifiedBy || reviewerInfo.name);
     
-    window.open(`/cubeTestingReport.html?${params.toString()}`, '_blank');
+    // Use openReport helper for better error handling
+    const reportData = Object.fromEntries(params.entries());
+    openReport('/cubeTestingReport.html', reportData, 'Full Test Report');
   };
   
   // Function to view FULL REPORT (Pages 2-4)
   const handleViewPDF = () => {
+    // Validate data completeness
+    const validation = checkReportDataCompleteness(testData.observationsData, testData.strengthData);
+    
+    if (!validation.complete) {
+      alert(`⚠️ Report Cannot Be Generated\n\n${validation.message}\n\nPlease complete all required data before generating the report.`);
+      return;
+    }
+    
     // Build URL parameters from testData
     const params = new URLSearchParams();
     
-    console.log('Full testData:', testData); // Debug log
+    console.log('📄 Generating Full Report with testData:', testData);
     
     params.append('page_type', 'full'); // Flag to show full report
     params.append('test_request_id', testData.id); // For sessionStorage image retrieval
