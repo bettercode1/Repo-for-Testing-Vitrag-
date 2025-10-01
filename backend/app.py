@@ -32,14 +32,21 @@ frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 allowed_origins = [
     'http://localhost:3000',
     'http://localhost:3001',
+    'https://repo-for-testing-vitrag-1.onrender.com',  # Production frontend
     frontend_url
 ]
+
+# Remove duplicates and empty strings
+allowed_origins = list(set(filter(None, allowed_origins)))
+
+print(f"🔒 CORS enabled for origins: {allowed_origins}")
 
 CORS(app, 
      origins=allowed_origins,
      methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
      allow_headers=['Content-Type', 'Authorization'],
-     supports_credentials=True)
+     supports_credentials=True,
+     expose_headers=['Content-Type'])
 
 # Set a secret key for session encryption
 app.secret_key = os.getenv('SESSION_SECRET', "vitrag_associates_secure_key_2025")

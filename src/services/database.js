@@ -1,9 +1,14 @@
 // Mock database service for development
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace(/\/+$/, ''); // Remove trailing slashes
 
 class DatabaseService {
   async request(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Ensure endpoint starts with a single slash
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE_URL}${normalizedEndpoint}`;
+    
+    console.log('🌐 API Request to:', url);
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
