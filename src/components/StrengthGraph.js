@@ -214,7 +214,7 @@ const StrengthGraph = () => {
 
   return (
     <Container className="mt-3">
-      <style jsx>{`
+      <style>{`
         .table th {
           background-color: #6c757d !important;
           color: white !important;

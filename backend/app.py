@@ -39,7 +39,7 @@ allowed_origins = [
 # Remove duplicates and empty strings
 allowed_origins = list(set(filter(None, allowed_origins)))
 
-print(f"🔒 CORS enabled for origins: {allowed_origins}")
+print(f"[CORS] Enabled for origins: {allowed_origins}")
 
 CORS(app, 
      origins=allowed_origins,
@@ -61,7 +61,7 @@ if database_url and database_url.strip():
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url.strip()
     print(f"Using database: {database_url}")
 else:
-    print("❌ DATABASE_URL not found in environment variables")
+    print("[ERROR] DATABASE_URL not found in environment variables")
     exit(1)
 
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -126,7 +126,7 @@ if not test_database_connection():
 
 def run_migrations():
     """Run database migrations to add missing columns"""
-    print("🔄 Running database migrations...")
+    print("[INFO] Running database migrations...")
     try:
         # Check and add observations_completed column if missing
         with db.engine.connect() as conn:
@@ -142,19 +142,19 @@ def run_migrations():
             column_exists = result.fetchone()
             
             if not column_exists:
-                print("⚙️ Adding missing column 'observations_completed' to concrete_test table...")
+                print("[INFO] Adding missing column 'observations_completed' to concrete_test table...")
                 alter_query = db.text("""
                     ALTER TABLE concrete_test 
                     ADD COLUMN observations_completed BOOLEAN DEFAULT FALSE
                 """)
                 conn.execute(alter_query)
                 conn.commit()
-                print("✅ MIGRATION SUCCESS: Added 'observations_completed' column")
+                print("[INFO] MIGRATION SUCCESS: Added 'observations_completed' column")
             else:
-                print("✅ MIGRATION CHECK: Column 'observations_completed' already exists")
+                print("[INFO] MIGRATION CHECK: Column 'observations_completed' already exists")
                 
     except Exception as e:
-        print(f"❌ MIGRATION ERROR: {str(e)}")
+        print(f"[ERROR] MIGRATION ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
 
@@ -816,13 +816,13 @@ def get_test_observations(test_request_id):
         import json
         
         print(f"\n{'='*50}")
-        print(f"📥 GET TEST OBSERVATIONS - Request ID: {test_request_id}")
+        print(f"[INFO] GET TEST OBSERVATIONS - Request ID: {test_request_id}")
         print(f"{'='*50}\n")
         
         # Get test request
         test_request = db.session.get(TestRequest, test_request_id)
         if not test_request:
-            print(f"❌ Test request {test_request_id} not found")
+            print(f"[ERROR] Test request {test_request_id} not found")
             return jsonify({'error': 'Test request not found'}), 404
         
         # Get concrete tests with results - try has_results=True first, then all tests
@@ -833,8 +833,8 @@ def get_test_observations(test_request_id):
         
         # If no tests with results, return empty structure (new test - no saved data yet)
         if not concrete_tests:
-            print(f"⚠️ No tests with has_results=True")
-            print(f"✅ Returning empty observation structure for new test")
+            print(f"[WARN] No tests with has_results=True")
+            print(f"[INFO] Returning empty observation structure for new test")
             return jsonify({
                 'formData': {
                     'sampleDescription': 'Concrete Cube Specimen',
@@ -853,12 +853,12 @@ def get_test_observations(test_request_id):
                 'isEmpty': True
             }), 200
         
-        print(f"✅ Found {len(concrete_tests)} concrete test(s)")
+        print(f"[INFO] Found {len(concrete_tests)} concrete test(s)")
         
         # Get the first concrete test (or you can get specific one)
         concrete_test = concrete_tests[0]
         
-        print(f"✅ Concrete Test Details:")
+        print(f"[INFO] Concrete Test Details:")
         print(f"   - ID: {concrete_test.id}")
         print(f"   - Weight: {concrete_test.weight}")
         print(f"   - Compressive Strength: {concrete_test.compressive_strength}")
@@ -882,10 +882,10 @@ def get_test_observations(test_request_id):
             'capturedImages': {}
         }
         
-        print(f"✅ Built formData")
+        print(f"[INFO] Built formData")
         
         # Build test rows from saved concrete tests
-        print(f"✅ Building test rows from {len(concrete_tests)} concrete tests...")
+        print(f"[INFO] Building test rows from {len(concrete_tests)} concrete tests...")
         for idx, ct in enumerate(concrete_tests):
             print(f"   Row {idx + 1}: weight={ct.weight}, strength={ct.compressive_strength}")
             row = {
@@ -903,11 +903,11 @@ def get_test_observations(test_request_id):
             }
             saved_data['testRows'].append(row)
         
-        print(f"✅ Built {len(saved_data['testRows'])} test rows")
+        print(f"[INFO] Built {len(saved_data['testRows'])} test rows")
         
         # TODO: Load captured images from database if stored
         
-        print(f"✅ Returning saved observations data:")
+        print(f"[INFO] Returning saved observations data:")
         print(f"   - formData fields: {len(saved_data['formData'])}")
         print(f"   - testRows: {len(saved_data['testRows'])}")
         print(f"{'='*50}\n")
@@ -918,7 +918,7 @@ def get_test_observations(test_request_id):
         import traceback
         error_trace = traceback.format_exc()
         app.logger.error(f"Error retrieving test observations: {error_trace}")
-        print(f"\n❌ ERROR RETRIEVING OBSERVATIONS:")
+        print(f"\n[ERROR] ERROR RETRIEVING OBSERVATIONS:")
         print(error_trace)
         print(f"{'='*50}\n")
         return jsonify({'error': f'Failed to retrieve observations: {str(e)}'}), 500
@@ -1011,24 +1011,24 @@ def save_strength_graph(test_request_id):
         # Get JSON data
         data = request.get_json()
         if not data:
-            print("❌ ERROR: No JSON data received")
+            print("[ERROR] No JSON data received")
             return jsonify({'error': 'No data provided'}), 400
             
-        print(f"📥 Received data: {data}")
+        print(f"[INFO] Received data: {data}")
         
         # Get test request
         test_request = db.session.get(TestRequest, test_request_id)
         if not test_request:
-            print(f"❌ ERROR: Test request {test_request_id} not found")
+            print(f"[ERROR] Test request {test_request_id} not found")
             return jsonify({'error': 'Test request not found'}), 404
         
-        print(f"✅ Found test request: {test_request.job_number}")
+        print(f"[INFO] Found test request: {test_request.job_number}")
         
         # Get concrete tests
         concrete_tests = ConcreteTest.query.filter_by(test_request_id=test_request_id).all()
         if not concrete_tests:
-            print(f"⚠️ WARNING: No concrete tests found for request {test_request_id}")
-            print(f"⚠️ Creating a new concrete test record...")
+            print(f"[WARN] WARNING: No concrete tests found for request {test_request_id}")
+            print(f"[WARN] Creating a new concrete test record...")
             
             # Create a new concrete test record
             concrete_test = ConcreteTest(
@@ -1038,9 +1038,9 @@ def save_strength_graph(test_request_id):
             )
             db.session.add(concrete_test)
             db.session.flush()  # Get the ID
-            print(f"✅ Created new concrete test with ID: {concrete_test.id}")
+            print(f"[INFO] Created new concrete test with ID: {concrete_test.id}")
         else:
-            print(f"✅ Found {len(concrete_tests)} concrete test(s)")
+            print(f"[INFO] Found {len(concrete_tests)} concrete test(s)")
             # We'll save to the first concrete test
             concrete_test = concrete_tests[0]
         
@@ -1086,7 +1086,7 @@ def save_strength_graph(test_request_id):
         # Commit to database
         db.session.commit()
         
-        print(f"✅ Successfully saved strength graph data for test request {test_request_id}")
+        print(f"[INFO] Successfully saved strength graph data for test request {test_request_id}")
         print(f"{'='*50}\n")
         
         return jsonify({
@@ -1102,7 +1102,7 @@ def save_strength_graph(test_request_id):
         import traceback
         error_trace = traceback.format_exc()
         app.logger.error(f"Error saving strength graph: {error_trace}")
-        print(f"\n❌ STRENGTH GRAPH ERROR:")
+        print(f"\n[ERROR] STRENGTH GRAPH ERROR:")
         print(error_trace)
         print(f"{'='*50}\n")
         return jsonify({'error': f'Failed to save strength graph: {str(e)}'}), 500
