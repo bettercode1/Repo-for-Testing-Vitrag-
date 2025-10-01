@@ -126,6 +126,7 @@ if not test_database_connection():
 
 def run_migrations():
     """Run database migrations to add missing columns"""
+    print("🔄 Running database migrations...")
     try:
         # Check and add observations_completed column if missing
         with db.engine.connect() as conn:
@@ -141,19 +142,21 @@ def run_migrations():
             column_exists = result.fetchone()
             
             if not column_exists:
-                print("Adding missing column 'observations_completed' to concrete_test table...")
+                print("⚙️ Adding missing column 'observations_completed' to concrete_test table...")
                 alter_query = db.text("""
                     ALTER TABLE concrete_test 
                     ADD COLUMN observations_completed BOOLEAN DEFAULT FALSE
                 """)
                 conn.execute(alter_query)
                 conn.commit()
-                print("✅ Successfully added 'observations_completed' column")
+                print("✅ MIGRATION SUCCESS: Added 'observations_completed' column")
             else:
-                print("✅ Column 'observations_completed' already exists")
+                print("✅ MIGRATION CHECK: Column 'observations_completed' already exists")
                 
     except Exception as e:
-        print(f"⚠️ Migration warning: {str(e)}")
+        print(f"❌ MIGRATION ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 with app.app_context():
     # Import the models here so tables are created
