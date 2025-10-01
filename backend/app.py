@@ -124,6 +124,37 @@ if not test_database_connection():
     print("ERROR: Database connection failed. Please check your PostgreSQL server.")
     exit(1)
 
+def run_migrations():
+    """Run database migrations to add missing columns"""
+    try:
+        # Check and add observations_completed column if missing
+        with db.engine.connect() as conn:
+            # Check if column exists
+            check_query = db.text("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='concrete_test' 
+                AND column_name='observations_completed'
+            """)
+            
+            result = conn.execute(check_query)
+            column_exists = result.fetchone()
+            
+            if not column_exists:
+                print("Adding missing column 'observations_completed' to concrete_test table...")
+                alter_query = db.text("""
+                    ALTER TABLE concrete_test 
+                    ADD COLUMN observations_completed BOOLEAN DEFAULT FALSE
+                """)
+                conn.execute(alter_query)
+                conn.commit()
+                print("✅ Successfully added 'observations_completed' column")
+            else:
+                print("✅ Column 'observations_completed' already exists")
+                
+    except Exception as e:
+        print(f"⚠️ Migration warning: {str(e)}")
+
 with app.app_context():
     # Import the models here so tables are created
     import models  # noqa: F401
@@ -135,6 +166,9 @@ with app.app_context():
     except Exception as e:
         print(f"ERROR: Error creating database tables: {str(e)}")
         print("INFO: Check your database permissions and connection")
+    
+    # Run migrations for existing tables
+    run_migrations()
 
 # Health check endpoint for monitoring
 @app.route('/ping')
