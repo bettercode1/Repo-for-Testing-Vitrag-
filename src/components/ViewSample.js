@@ -4,6 +4,7 @@ import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faList } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+import { getApiUrl } from '../config/api';
 
 const ViewSample = () => {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const ViewSample = () => {
       if (testRequestId) {
         setLoading(true);
         try {
-          const response = await axios.get(`http://localhost:5000/api/test-requests/${testRequestId}/details`);
+          const response = await axios.get(getApiUrl(`/test-requests/${testRequestId}/details`));
           const data = response.data;
           
           // Build testRequest object from API data

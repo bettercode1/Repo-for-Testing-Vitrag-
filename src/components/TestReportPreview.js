@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Table, Form, Badge, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getApiUrl } from '../config/api';
 import {
   faArrowLeft,
   faFilePdf,
@@ -55,7 +56,7 @@ const TestReportPreview = () => {
       
       try {
         console.log('🔍 Fetching test data for ID:', testRequestId);
-        const response = await axios.get(`http://localhost:5000/api/test-requests/${testRequestId}/details`);
+        const response = await axios.get(getApiUrl(`/test-requests/${testRequestId}/details`));
         const data = response.data;
         
         console.log('✅ Fetched data:', data);

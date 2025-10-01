@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Card, Button, Table, Row, Col, Form, Modal } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { getApiUrl } from '../config/api';
 
 const StrengthGraph = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const StrengthGraph = () => {
       
       try {
         console.log('🔄 Fetching saved strength graph data for test:', testRequestId);
-        const response = await axios.get(`http://localhost:5000/api/test-requests/${testRequestId}/details`);
+        const response = await axios.get(getApiUrl(`/test-requests/${testRequestId}/details`));
         const data = response.data;
         
         const firstTest = data.concrete_tests?.[0];
@@ -101,25 +102,16 @@ const StrengthGraph = () => {
     
     try {
       console.log('📤 Sending data to backend:', strengthData);
-      console.log('📍 URL:', `http://localhost:5000/api/strength-graph/${testRequestId}`);
+      const apiUrl = getApiUrl(`/strength-graph/${testRequestId}`);
+      console.log('📍 URL:', apiUrl);
       console.log('📍 testRequestId type:', typeof testRequestId);
       console.log('📍 testRequestId value:', testRequestId);
-      
-      // First, test backend connectivity
-      console.log('🔍 Testing backend connectivity...');
-      try {
-        await axios.get('http://localhost:5000/');
-        console.log('✅ Backend is reachable');
-      } catch (connectError) {
-        console.error('❌ Backend connectivity test failed:', connectError);
-        throw new Error('Cannot connect to backend server. Make sure Flask is running on port 5000.');
-      }
       
       // Save to database
       console.log('💾 Sending POST request...');
       const response = await axios({
         method: 'POST',
-        url: `http://localhost:5000/api/strength-graph/${testRequestId}`,
+        url: apiUrl,
         data: strengthData,
         headers: {
           'Content-Type': 'application/json'
@@ -147,7 +139,7 @@ const StrengthGraph = () => {
         errorMsg += `Server error: ${error.response.data?.error || error.response.statusText}`;
       } else if (error.request) {
         // Request made but no response
-        errorMsg += 'Backend server is not responding. Please make sure Flask is running on http://localhost:5000';
+        errorMsg += 'Backend server is not responding. Please check your internet connection.';
       } else {
         // Something else
         errorMsg += error.message;
