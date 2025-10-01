@@ -131,8 +131,8 @@ with app.app_context():
 
 # Health check endpoint for monitoring
 @app.route('/ping')
-def health_check():
-    """Simple health check endpoint that returns 200 OK"""
+def ping():
+    """Simple ping endpoint that returns 200 OK"""
     return "OK", 200
 
 # Simple test endpoint
