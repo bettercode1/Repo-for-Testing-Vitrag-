@@ -5,6 +5,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faList } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
+// API Base URL from environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const ViewSample = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,6 +23,7 @@ const ViewSample = () => {
   console.log('ViewSample - formData:', location.state?.formData);
   console.log('ViewSample - pathname:', location.pathname);
   console.log('ViewSample - search:', location.search);
+  console.log('ViewSample - API_BASE_URL:', API_BASE_URL);
   
   useEffect(() => {
     const fetchTestRequestData = async () => {
@@ -27,7 +31,7 @@ const ViewSample = () => {
       if (testRequestId) {
         setLoading(true);
         try {
-          const response = await axios.get(`http://localhost:5000/api/test-requests/${testRequestId}/details`);
+          const response = await axios.get(`${API_BASE_URL}/test-requests/${testRequestId}/details`);
           const data = response.data;
           
           // Build testRequest object from API data

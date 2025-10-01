@@ -4,6 +4,9 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import databaseService from '../services/database';
 import axios from 'axios';
 
+// API Base URL from environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const TestObservations = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -56,7 +59,7 @@ const TestObservations = () => {
       if (testRequestId && !testData && !testRequest) {
         setLoading(true);
         try {
-          const response = await axios.get(`http://localhost:5000/api/test-requests/${testRequestId}/details`);
+          const response = await axios.get(`${API_BASE_URL}/test-requests/${testRequestId}/details`);
           setApiTestRequest(response.data.test_request);
           setApiConcreteTests(response.data.concrete_tests);
           console.log('✅ Fetched test data for observations:', response.data);
@@ -80,7 +83,7 @@ const TestObservations = () => {
         setLoading(true);
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/test-observations/${testRequestId}`,
+            `${API_BASE_URL}/test-observations/${testRequestId}`,
             {
               headers: {
                 'Content-Type': 'application/json',
@@ -429,7 +432,7 @@ const TestObservations = () => {
       try {
         // Try to save to database first
         setSaveProgress(50);
-        await axios.post(`http://localhost:5000/api/test-observations/${testRequestId}`, observationsData);
+        await axios.post(`${API_BASE_URL}/test-observations/${testRequestId}`, observationsData);
         setSaveProgress(80);
         setSubmitMessage({ type: 'success', text: 'Test observations saved successfully!' });
         setShowSuccessModal(true);
