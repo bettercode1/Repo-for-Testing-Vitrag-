@@ -1,0 +1,32 @@
+services:
+  # Backend Service (Flask API)
+  - type: web
+    name: vitrag-backend
+    env: python
+    region: oregon
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+    healthCheckPath: /api/health
+
+  # Frontend Service (React)
+  - type: web
+    name: vitrag-frontend
+    env: node
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm install -g serve && serve -s build -l 3000
+    envVars:
+      - key: NODE_VERSION
+        value: 18.18.0
+      - key: REACT_APP_API_URL
+        sync: false
+
